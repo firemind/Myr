@@ -12,12 +12,13 @@ public class Move extends Thread{
   ArrayList<Move> childMoves = new ArrayList<Move>();
   Integer current_player;
   Move parent = null;
-  
   private Integer score = null;
-  public Move(Myr myr, Action act){;
+  
+  public Move(Myr myr, Action act, Setting set){;
 	  this.act = act;
 	  this.myr = myr;
-	  this.game = myr.game.clone();
+	  this.set = set;
+
   }
   
   public void setParent( Move p){
@@ -30,24 +31,23 @@ public class Move extends Thread{
 	  }else{
 		  this.game = myr.game.clone();
 	  }
-	  this.set = TTTAI.createSettingFromField(game.getField());
   }
   
   	public Integer getResult(){
   		if(this.childMoves.size() > 0){
-  			Integer wins = 0;
+  			double wins = 0.0;
   			for(Move m : childMoves){
   				if(m.getResult() == null){
   					return null;
   				}else if(m.getResult() == Myr.LOSE){
-  					return Myr.LOSE;
+  					this.score = Myr.LOSE;
+  					return this.score;
   				}else if(m.getResult() == Myr.WIN){
   					wins++;
   				}
   			}
-  			if(wins == this.childMoves.size()){
-  				return Myr.WIN;
-  			}
+  			double ratio = wins / this.childMoves.size();
+  			this.score = (int) Math.round(ratio * Myr.WIN);
   		}
   		return this.score;
   	}
@@ -63,35 +63,57 @@ public class Move extends Thread{
 	}
   
   public void run(){
-	  this.loadInitValues();
-	  this.game.makeMove(Integer.valueOf(act.getValue()));
-	  if(game.gameEnded()){
-		  if(game.checkForWinner(myr.player_id)){
-			  System.out.println("Thread leads to win");
-			  game.printField();
-			  score = Myr.WIN;
-			  myr.learnWin(set, act);
-		  }else if(game.checkForDraw()){
-			  System.out.println("Thread leads to draw");
-			  score = Myr.DRAW;
-			  myr.learnDraw(set, act);
+	  if(!exceededGeneration(3)){
+		  this.loadInitValues();
+		  this.game.makeMove(Integer.valueOf(act.getValue()));
+		  if(game.gameEnded()){
+			  if(game.checkForWinner(myr.player_id)){
+				  score = Myr.WIN;
+			  }else if(game.checkForDraw()){
+				  score = Myr.DRAW;
+			  }else{
+				  score = Myr.LOSE;
+			  }
 		  }else{
-			  System.out.println("Thread leads to lose");
-			  score = Myr.LOSE;
-			  myr.learnLose(set, act);
+			    this.spawnChildren();
+				while(this.getResult() == null){
+					this.waitOnChildResults();
+				}
 		  }
-		  wakeParent();
 	  }else{
-			this.childMoves = myr.calculateMoves(game);
-  			for(Move m : childMoves){
-  				m.setParent(this);
-  				m.start();
-  			}
-			while(this.getResult() == null){
-				this.waitOnChildResults();
-			}
-			wakeParent();
+		  score = Myr.DRAW;
 	  }
+	  wakeParent();
+	  learnResult();
+  }
+  
+  private void learnResult(){
+	  if(this.score == null)
+	    System.err.println("Wrong Score null");
+	  switch(this.getResult()){
+	    case Myr.WIN:  myr.learnWin(set, act);break;
+	    case Myr.DRAW:  myr.learnDraw(set, act); break;
+	    case Myr.LOSE:  myr.learnLose(set, act); break;
+	    default: myr.learnScore(set, act, score); break;
+	  }
+  }
+  
+  private void spawnChildren(){
+		this.childMoves = myr.calculateMoves(game);
+		for(Move m : childMoves){
+			m.setParent(this);
+			m.start();
+		}
+  }
+  
+  public boolean exceededGeneration(Integer gen){
+	  Integer count = 0;
+	  Move p = this.parent;
+	  while(p != null){
+		  count++;
+		  p = p.parent;
+	  }
+      return count > gen;
   }
   
   private void wakeParent(){

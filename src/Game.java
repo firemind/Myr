@@ -25,7 +25,6 @@ public class Game implements Cloneable{
   }
   
   public void makeMove(int i){
-	  System.out.println("player "+current_player+" makes a move");
 	  if(field[i] == 0){
 		  field[i] = current_player;
 		  endTurn();
@@ -71,7 +70,6 @@ public class Game implements Cloneable{
 	  }else{
 		  current_player = PLAYER_O;
   	  }
-	  System.out.println("Changed Player to "+current_player);
   }
   
 	public boolean checkForWinner(int player) {

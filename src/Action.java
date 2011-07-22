@@ -1,12 +1,12 @@
 
 public class Action {
-	private String value;
+	private Integer value;
   
-	Action(String value){
+	Action(Integer value){
 		this.value = value;
 	}
 
-	public String getValue() {
+	public Integer getValue() {
 		return value;
 	}
 }

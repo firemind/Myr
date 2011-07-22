@@ -7,17 +7,17 @@ public class ActionEngine {
 	
 	   private List<Action> actions = Collections.synchronizedList(new ArrayList<Action>());
 	   
-	   public int addAction(String val){
+	   public Action addAction(Integer val){
 		   Action na = new Action(val);
 		   for ( Action act : actions){
 			   if(act.getValue().equals(na.getValue())){
 				   //System.out.println("Action already known");
-				   return this.actions.indexOf(act);
+				   return act;
 			   }
 		   }
-		   System.out.println("Learning new Setting");
+		   System.out.println("Learning new Action");
 		   this.actions.add(na);
-		   return this.actions.indexOf(na);
+		   return na;
 	   }
 	   
 	   public Action getAction(int index){

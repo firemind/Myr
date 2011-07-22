@@ -1,19 +1,21 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 public class SettingEngine {
-   private ArrayList<Setting> settings = new ArrayList<Setting>();
+	
+   private List<Setting> settings = Collections.synchronizedList(new ArrayList<Setting>());
    
-   public int addSetting(Setting ns){
+   public synchronized Setting addSetting(Setting ns){
 	   for ( Setting set : settings){
 		   if(set.equals(ns)){
-			   System.out.println("Setting already known");
-			   return this.settings.indexOf(set);
+			   return set;
 		   }
 	   }
-	   System.out.println("Learning new Setting");
+	   //System.out.println("Learning new Setting");
 	   this.settings.add(ns);
-	   return this.settings.indexOf(ns);
+	   return ns;
    }
    
    public Setting getSetting(int index){

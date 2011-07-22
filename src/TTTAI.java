@@ -1,9 +1,60 @@
 
 public class TTTAI {
+	
+	public int myr_wins = 0;
+	public int tttai_wins = 0;
+	public int draws = 0;
+	
+	
 	public static void main(String[] args){
+		Myr myr = new Myr();
+		TTTAI tttai = new TTTAI();
+		for(int i = 1; i < 100; i++){
+		  playGame(myr, tttai);
+		  System.out.println("Myr Wins "+tttai.myr_wins);
+		  System.out.println("TTTAI Wins "+tttai.tttai_wins);
+		  System.out.println("Draws "+tttai.draws);
+		}
+	}
+	
+	public static void playGame(Myr myr, TTTAI tttai){
 		Game game = new Game();
-		Myr myr = new Myr(game);
-		
+		myr.setGame(game);
+		Action bestMove;
+		while(!myr.game.gameEnded()){
+			System.out.println("Myr's turn");
+			bestMove = null;
+			while(bestMove == null){
+				myr.testMoves();
+				System.out.println("Test Moves started");
+				try {
+					synchronized (myr){
+					  myr.wait(100);
+					}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				bestMove = myr.getBestMove(createSettingFromField(game.field));
+				if(bestMove == null){
+					System.out.println("Still thinking...");
+				}
+			}
+			game.makeMove(Integer.valueOf(bestMove.getValue()));
+			if(!game.gameEnded()){
+				System.out.println("TTTAI's turn");
+				game.makeMove(besterZug(game));
+			}
+		}
+		System.err.println("Game ended");
+		if(game.checkForWinner(myr.player_id)){
+			tttai.myr_wins++;
+		}else if(game.checkForDraw()){
+			tttai.draws++;
+		}else{
+			tttai.tttai_wins++;
+		}
+		game.printField();
 	}
 	
 	public static Setting createSettingFromField(int[] field){
@@ -18,5 +69,41 @@ public class TTTAI {
 		set.put("FIELD 8", String.valueOf(field[7]));
 		set.put("FIELD 9", String.valueOf(field[8]));
 		return set;
+	}
+	
+	public static int siegInEinemZug(Game game, int aktuellerSpieler) {
+		game = game.clone();
+		// gibt Zug (Feld) zum Gewinn zurueck oder -1 falls kein Sieg in 1 Zug moeglich
+		for (int i =0; i <9; i++) {	
+			if(game.field[i] == 0) {
+				// Feld ist leer, mache eine Zug darauf und teste, ob gewonnen 
+				game.field[i] = aktuellerSpieler;
+				if( game.checkForWinner(aktuellerSpieler)) {
+					game.field[i] = 0; 
+					return i;
+				}
+				game.field[i] = 0;
+			}
+		}
+		return -1;
+	}
+	
+	public static int besterZug(Game game) {
+		int feld;
+		// Teste, ob Computer in 1 Zug gewinnen kann
+		if((feld = siegInEinemZug(game, game.current_player)) != -1)
+			return feld;
+		
+		// Teste, ob Gegner in 1 Zug gewinnen kann (und ziehe ggf. dorthin)
+		if((feld = siegInEinemZug(game, game.PLAYER_O)) != -1)
+			return feld;
+
+		// Computer kann in 1 Zug nicht gewinnen
+		// mach einen Zufallszug
+		do	{ 
+			feld = (int)(Math.random()*9); // 0.0 <= Math.random() < 1		
+		}  while(game.field[feld] != 0);
+		
+		return feld;
 	}
 }
