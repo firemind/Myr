@@ -9,52 +9,38 @@ public class TTTAI {
 	public static void main(String[] args){
 		Myr myr = new Myr();
 		TTTAI tttai = new TTTAI();
-		for(int i = 1; i < 100; i++){
+		for(int i = 0; i < 100000; i++){
 		  playGame(myr, tttai);
+		}
 		  System.out.println("Myr Wins "+tttai.myr_wins);
 		  System.out.println("TTTAI Wins "+tttai.tttai_wins);
 		  System.out.println("Draws "+tttai.draws);
-		}
+		  System.out.println("Total Settings learned "+myr.learnedMoves.size());
 	}
 	
 	public static void playGame(Myr myr, TTTAI tttai){
 		Game game = new Game();
-		myr.setGame(game);
-		Action bestMove;
+		myr.startGame(game);
+		Integer assumedScore = 0;
 		while(!myr.game.gameEnded()){
-			System.out.println("Myr's turn");
-			bestMove = null;
-			while(bestMove == null){
-				myr.testMoves();
-				System.out.println("Test Moves started");
-				try {
-					synchronized (myr){
-					  myr.wait(100);
-					}
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				bestMove = myr.getBestMove(createSettingFromField(game.field));
-				if(bestMove == null){
-					System.out.println("Still thinking...");
-				}
-			}
-			game.makeMove(Integer.valueOf(bestMove.getValue()));
-			if(!game.gameEnded()){
-				System.out.println("TTTAI's turn");
+//			System.out.println("Myr's turn");
+			assumedScore = myr.makeMove();
+			if(!myr.game.gameEnded()){
+	//			System.out.println("TTTAI's turn");
 				game.makeMove(besterZug(game));
 			}
 		}
-		System.err.println("Game ended");
 		if(game.checkForWinner(myr.player_id)){
 			tttai.myr_wins++;
 		}else if(game.checkForDraw()){
 			tttai.draws++;
 		}else{
 			tttai.tttai_wins++;
+			if(assumedScore != null && assumedScore >= 0){
+			  System.err.println("TTTAI wins, score was "+assumedScore);
+			  game.printField();
+			}
 		}
-		game.printField();
 	}
 	
 	public static Setting createSettingFromField(int[] field){
@@ -95,7 +81,7 @@ public class TTTAI {
 			return feld;
 		
 		// Teste, ob Gegner in 1 Zug gewinnen kann (und ziehe ggf. dorthin)
-		if((feld = siegInEinemZug(game, game.PLAYER_O)) != -1)
+		if((feld = siegInEinemZug(game, Game.PLAYER_O)) != -1)
 			return feld;
 
 		// Computer kann in 1 Zug nicht gewinnen
@@ -105,5 +91,13 @@ public class TTTAI {
 		}  while(game.field[feld] != 0);
 		
 		return feld;
+	}
+	
+	public static void printSetting(Setting set){
+		System.out.println("+-----+");
+		System.out.println("|"+set.get("FIELD 1")+"|"+set.get("FIELD 2")+"|"+set.get("FIELD 3")+"|");
+		System.out.println("|"+set.get("FIELD 4")+"|"+set.get("FIELD 5")+"|"+set.get("FIELD 6")+"|");
+		System.out.println("|"+set.get("FIELD 7")+"|"+set.get("FIELD 8")+"|"+set.get("FIELD 9")+"|");
+		System.out.println("+-----+");
 	}
 }

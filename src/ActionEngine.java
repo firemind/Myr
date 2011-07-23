@@ -7,7 +7,7 @@ public class ActionEngine {
 	
 	   private List<Action> actions = Collections.synchronizedList(new ArrayList<Action>());
 	   
-	   public Action addAction(Integer val){
+	   public synchronized Action addAction(Integer val){
 		   Action na = new Action(val);
 		   for ( Action act : actions){
 			   if(act.getValue().equals(na.getValue())){

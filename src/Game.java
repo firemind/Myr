@@ -29,7 +29,7 @@ public class Game implements Cloneable{
 		  field[i] = current_player;
 		  endTurn();
 	  }else{
-		  System.err.println("Move not allowed");
+		  System.err.println("Move not allowed "+i);
 	  }
   }
   

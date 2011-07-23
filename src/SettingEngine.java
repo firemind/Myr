@@ -26,21 +26,24 @@ public class SettingEngine {
 	   return this.settings.indexOf(set);
    }
    
-   public int getMostSimilarSetting(Setting tset){
+   public synchronized Setting getMostSimilarSetting(Setting tset){
+	   System.out.println("Comparing settings");
 	   Setting mostSimilar = null;
 	   int similarityScore = 0;
 	   for ( Setting set : settings){
-		   int score = tset.similarTo(set);
-		   if(score > similarityScore){
-			   mostSimilar = set;
-			   similarityScore = score;
+		   if(set != tset){
+			   int score = tset.similarTo(set);
+			   if(score > similarityScore){
+				   mostSimilar = set;
+				   similarityScore = score;
+			   }
 		   }
 	   }
 	   if(mostSimilar == null){
-		   System.out.println("No similar setting found");
+		   //System.out.println("No similar setting found");
 	   }else{
 		   System.out.println("Found similar setting with a score of "+similarityScore);
 	   }
-	   return this.settings.indexOf(mostSimilar);
+	   return mostSimilar;
    }
 }
