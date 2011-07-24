@@ -41,12 +41,12 @@ public class Myr {
 		Setting set = TTTAI.createSettingFromField(game.field);
 		set = this.settingEngine.addSetting(set);
 		bestMove = this.getBestMove(set);
-		if(bestMove != null && bestMove.getValue() == Myr.UNKNOWN){
+		/*if(bestMove != null && getLearnedMove(set, bestMove) != null && getLearnedMove(set, bestMove) == Myr.UNKNOWN){
 			//System.out.println("Thinking of something better...");
 			this.testMoves();
 			bestMove = this.getBestMove(set);
-		}
-		while(bestMove == null){
+		}*/
+		while(bestMove == null ){
 			this.testMoves();
 			bestMove = this.getBestMove(set);
 		}
@@ -63,7 +63,7 @@ public class Myr {
   		}
 		try {
 			synchronized (this){
-			  this.wait(1000);
+			  this.wait(firstMoves.size()*100);
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -133,11 +133,11 @@ public class Myr {
 		}
 	}
 	
+	
+	// Returns the score of a learned move
 	public Integer getLearnedMove(Setting set, Action act){
 		HashMap<Action, Integer> ms = this.learnedMoves.get(set);
 		if(ms == null)
-			return null;
-		if(ms.get(act) == null || ms.get(act) == UNKNOWN)
 			return null;
 		return ms.get(act);
 	}
@@ -151,6 +151,13 @@ public class Myr {
 		for(int i=0;(i<values.length && moves.size() <= maxThreads ) ;i++){
 			Action act = this.actionEngine.addAction((Integer)values[i]);
 			Move m = createMove(set, act);
+			switch(pm.size()){
+			  case 5: m.maxGeneration = 3; break;
+			  case 4: m.maxGeneration = 3; break;
+			  case 3: m.maxGeneration = 3; break;
+			  case 1: m.maxGeneration = 1; break;
+			  default: m.maxGeneration = 2; break;
+			}
 			moves.add(m);
 		}
 		return moves;

@@ -9,7 +9,7 @@ public class TTTAI {
 	public static void main(String[] args){
 		Myr myr = new Myr();
 		TTTAI tttai = new TTTAI();
-		for(int i = 0; i < 1000; i++){
+		for(int i = 0; i < 80000; i++){
 		  playGame(myr, tttai);
 		}
 		  System.out.println("Myr Wins "+tttai.myr_wins);
@@ -37,7 +37,8 @@ public class TTTAI {
 			tttai.draws++;
 		}else{
 			tttai.tttai_wins++;
-			//  System.err.println("TTTAI wins, score was "+assumedScore);
+			if(assumedScore > -100)
+			  System.err.println("TTTAI wins, score was "+assumedScore);
 		}
 	}
 	

@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 public class Move extends Thread{
 	
-  public static Integer maxGeneration = 3;
+  public Integer maxGeneration = 2;
   public Game game;
   Action act;
   Myr myr;
@@ -41,20 +41,21 @@ public class Move extends Thread{
   			if(this.my_move){
 	  			int wins = 0;
 	  			for(Move m : childMoves){
-	  				if(m.getResult() == null){
+	  				Integer res = m.getResult();
+	  				if(res == null){
 	  					return null;
-	  				}else if(m.getResult() == Myr.LOSE){
+	  				}else if(res == Myr.LOSE){
 	  					// Opponent has a move with which it could win
 	  					// => this move leads to a lost game
 	  					this.score = Myr.LOSE;
 	  					return this.score;
-	  				}else if(m.getResult() == Myr.WIN){
+	  				}else if(res == Myr.WIN){
 	  					wins++;
-	  				}else if(m.getResult() == Myr.UNKNOWN){
+	  				}else if(res == Myr.UNKNOWN){
 	  					// Outcome of child is is unknown
 	  					// => Outcome of this move is unknown
 	  					this.score = Myr.UNKNOWN;
-	  				}else if(m.getResult() == Myr.DRAW){
+	  				}else if(res == Myr.DRAW){
 	  					if(this.score == null){
 	  					  this.score = Myr.DRAW;
 	  					}
@@ -65,31 +66,25 @@ public class Move extends Thread{
 	  			if(wins == childMoves.size()){
 	  				this.score = Myr.WIN;
 	  			}
-/*	  			if(this.score != null && this.score == Myr.UNKNOWN && wins > 0){
-	  				Float ratio = (float) wins;
-	  				ratio = ratio / childMoves.size();
-	  				int result = (int) Math.round(ratio * Myr.WIN);
-	  				//System.out.println("Score with wins "+wins+" ratio "+ratio+":"+result);
-	  				this.score = result;
-	  			}*/
   			}else{
   				// It's a move by an opponent
 	  			int loses = 0;
 	  			for(Move m : childMoves){
-	  				if(m.getResult() == null){
+	  				Integer res = m.getResult();
+	  				if(res == null){
 	  					return null;
-	  				}else if(m.getResult() == Myr.WIN){
+	  				}else if(res == Myr.WIN){
 	  					// If one of the child moves (my moves) give me a chance to win
 	  					// => it's a guaranteed win
 	  					this.score = Myr.WIN;
 	  					return this.score;
-	  				}else if(m.getResult() == Myr.LOSE){
+	  				}else if(res == Myr.LOSE){
 	  					loses++;
-	  				}else if(m.getResult() == Myr.UNKNOWN){
+	  				}else if(res == Myr.UNKNOWN){
 	  					// Outcome of child is is unknown
 	  					// => Outcome of this move is unknown
 	  					this.score = Myr.UNKNOWN;
-	  				}else if(m.getResult() == Myr.DRAW){
+	  				}else if(res == Myr.DRAW){
 	  					if(this.score == null){
 		  				  this.score = Myr.DRAW;
 		  				}
@@ -100,24 +95,11 @@ public class Move extends Thread{
 	  			if(loses == childMoves.size()){
 	  				this.score = Myr.LOSE;
 	  			}
-/*	  			if(this.score != null && this.score == Myr.UNKNOWN && loses > 0){
-	  				Float ratio = (float) loses;
-	  				ratio = ratio / childMoves.size();
-	  				int result = (int) Math.round(ratio * Myr.LOSE);
-	  				//System.out.println("Score with loses "+loses+" ratio "+ratio+":"+result);
-	  				this.score = result;
-	  			}*/
   			}
   	  		if(this.score == null){
   	  			this.score = Myr.UNKNOWN;
   	  		}
   		}
-  	/*	if(this.score != null && this.score == Myr.UNKNOWN){
-  			Setting mostSimiliar = myr.settingEngine.getMostSimilarSetting(set);
-  			if(mostSimiliar != null){
-  				this.score = myr.getLearnedMove(mostSimiliar, act);
-  			}
-  		}*/
   		return this.score;
   	}
   
@@ -135,7 +117,7 @@ public class Move extends Thread{
 	  this.score = this.myr.getLearnedMove(set, act);
 	  if(this.score != null && this.score != Myr.UNKNOWN){
 		  //System.out.println("Move already known: "+this.score);
-  	  }else if( exceededGeneration(Move.maxGeneration)){
+  	  }else if( exceededGeneration(this.maxGeneration)){
 		  this.score = Myr.UNKNOWN;
 	  }else{
 		  this.loadInitValues();
@@ -161,11 +143,12 @@ public class Move extends Thread{
   }
   
   private void learnResult(){
-	  if(this.score == null){
+	  Integer res = this.getResult();
+	  if(res == null){
 	    System.err.println("Wrong Score null");
 	    return;
 	  }
-	  switch(this.getResult()){
+	  switch(res){
 	    case Myr.WIN:  myr.learnWin(set, act);break;
 	    case Myr.DRAW:  myr.learnDraw(set, act); break;
 	    case Myr.LOSE:  myr.learnLose(set, act); break;
