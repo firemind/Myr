@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 public class Move extends Thread{
 	
-  public static Integer maxGeneration = 2;
+  public static Integer maxGeneration = 3;
   public Game game;
   Action act;
   Myr myr;

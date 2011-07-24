@@ -63,7 +63,7 @@ public class Myr {
   		}
 		try {
 			synchronized (this){
-			  this.wait(100);
+			  this.wait(1000);
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -124,6 +124,7 @@ public class Myr {
 					bestScore = val;
 				}
 			}
+			//System.out.println("Best move "+bestMove.getValue()+" out of "+possibleMoves.size()+" has a score of "+bestScore);
 			return bestMove;
 		}else{
 			System.out.println("No Moves learned for this setting");

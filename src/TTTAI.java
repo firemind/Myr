@@ -9,7 +9,7 @@ public class TTTAI {
 	public static void main(String[] args){
 		Myr myr = new Myr();
 		TTTAI tttai = new TTTAI();
-		for(int i = 0; i < 100000; i++){
+		for(int i = 0; i < 1000; i++){
 		  playGame(myr, tttai);
 		}
 		  System.out.println("Myr Wins "+tttai.myr_wins);
@@ -25,6 +25,7 @@ public class TTTAI {
 		while(!myr.game.gameEnded()){
 //			System.out.println("Myr's turn");
 			assumedScore = myr.makeMove();
+			//game.printField();
 			if(!myr.game.gameEnded()){
 	//			System.out.println("TTTAI's turn");
 				game.makeMove(besterZug(game));
@@ -36,10 +37,7 @@ public class TTTAI {
 			tttai.draws++;
 		}else{
 			tttai.tttai_wins++;
-			if(assumedScore != null && assumedScore >= 0){
-			  System.err.println("TTTAI wins, score was "+assumedScore);
-			  game.printField();
-			}
+			//  System.err.println("TTTAI wins, score was "+assumedScore);
 		}
 	}
 	
