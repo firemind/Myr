@@ -31,10 +31,6 @@ public class Move extends Thread{
 	  }else{
 		  this.game = myr.game.clone();
 	  }
-	  if(!(this.game.current_player == this.myr.player_id) &&(this.maxGeneration % 2) != 0){
-		  System.err.println("Player's turn: "+game.current_player);
-		  TTTAI.printSetting(set);
-	  }
 	  this.my_move = (this.game.current_player == this.myr.player_id);
 
   }
@@ -44,10 +40,6 @@ public class Move extends Thread{
   			// If it's my move
   			boolean has_draw_child = false;
   			if(this.my_move){
-  				if((this.maxGeneration % 2) != 1){
-  					//System.out.println("Not my turn");
-  					//TTTAI.printSetting(set);
-  				}
 	  			int wins = 0;
 	  			for(Move m : childMoves){
 	  				Integer res = m.getResult();
@@ -95,10 +87,6 @@ public class Move extends Thread{
 	  					has_draw_child = true;
 		  			}
 	  			}
-	  			  if(!this.my_move && (this.maxGeneration % 2) != 0){
-	    				System.out.println("Not his turn");
-	    				TTTAI.printSetting(set);
-	    			}
 	  			if(this.score == null && has_draw_child){
 	  				this.score = Myr.DRAW;
 	  			}
@@ -137,14 +125,10 @@ public class Move extends Thread{
 		  }else{
 			    this.has_children = true;
 			    this.spawnChildren();
-//				while(this.getResult() == null){
-//					this.waitOnChildResults();
-//				}
 
 		  }
 		  learnResult();
 	  }
-	  //wakeParent();
 	  return;
   }
   
@@ -154,12 +138,8 @@ public class Move extends Thread{
 	    System.err.println("Wrong Score null");
 	    return;
 	  }
-	  switch(res){
-	    case Myr.WIN:  myr.learnWin(set, act);break;
-	    case Myr.DRAW:  myr.learnDraw(set, act); break;
-	    case Myr.LOSE:  myr.learnLose(set, act); break;
-	    case Myr.UNKNOWN: if(this.parent == null){myr.learnScore(set, act, Myr.UNKNOWN);} break;
-	    default: myr.learnScore(set, act, score); break;
+	  if(!(res == Myr.UNKNOWN && this.parent != null)){
+		  myr.learnScore(set, act, this.score);
 	  }
   }
   

@@ -9,8 +9,8 @@ public class TTTAI {
 	public static void main(String[] args){
 		Myr myr = new Myr();
 		TTTAI tttai = new TTTAI();
-		for(int i = 0; i < 8000; i++){
-			if(i % 1000 == 0){
+		for(int i = 0; i < 800000; i++){
+			if(i % 10 == 0){
 			  System.out.println("Game Nr "+i);
 			  printStats(tttai, myr);
 			}
@@ -24,17 +24,15 @@ public class TTTAI {
 		  System.out.println("TTTAI Wins "+tttai.tttai_wins);
 		  System.out.println("Draws "+tttai.draws);
 		  System.out.println("Total Settings learned "+myr.learnedMoves.size());
-		  System.out.println("Total Moves learned "+myr.learned_move_counter);
 	}
 	
 	public static void playGame(Myr myr, TTTAI tttai){
 		Game game = new Game();
 		game.current_player = Game.PLAYER_O;
 		myr.startGame(game);
-		int assumedScore = 0;
 		while(!myr.game.gameEnded()){
 //			System.out.println("Myr's turn");
-			assumedScore = myr.makeMove();
+			myr.makeMove();
 			//game.printField();
 			if(!myr.game.gameEnded()){
 	//			System.out.println("TTTAI's turn");
@@ -47,8 +45,6 @@ public class TTTAI {
 			tttai.draws++;
 		}else if(game.winner == Game.PLAYER_X){
 			tttai.tttai_wins++;
-			if(assumedScore > -100)
-			  System.err.println("TTTAI wins, score was "+assumedScore);
 		}
 	}
 	
