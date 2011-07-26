@@ -2,14 +2,14 @@ import java.util.HashMap;
 
 
 public class Game implements Cloneable{
-  static final int DRAW = 1;
+  static final int DRAW = 0;
   static final int PLAYER_O = 1;
   static final int PLAYER_X = 2;
   
 
   
-  private Integer winner = null;
-  public int current_player = PLAYER_O;
+  public int winner = 3;
+  public int current_player;
   public int[] field = new int[9];
  
   public Game(){
@@ -34,7 +34,7 @@ public class Game implements Cloneable{
   }
   
   public boolean gameEnded(){
-	  return winner != null;
+	  return winner != 3;
   }
   
   public Game clone(){
@@ -52,7 +52,7 @@ public class Game implements Cloneable{
   public HashMap<String, Integer> possibleMoves(){
 	  HashMap<String, Integer> possibleMoves = new HashMap<String, Integer>();
 	  for(int i = 0;i<9;i++){
-		  if(field[i] == 0){
+		  if(field[i] == Game.DRAW){
 			  possibleMoves.put("SET FIELD "+i, i);
 		  }
 	  }
@@ -61,14 +61,22 @@ public class Game implements Cloneable{
   
   
   private void endTurn(){
-	  if(checkForWinner(current_player))
+	  if(checkForWinner(current_player)){
 		  winner = current_player;
-	  if(checkForDraw())
+	  }else if(checkForDraw()){
 		  winner = DRAW;
+  	  }else if(checkForWinner(opponent())){
+  		  winner = opponent();
+  	  }else{
+	    current_player = opponent();
+  	  }
+  }
+  
+  private int opponent(){
 	  if(current_player == PLAYER_O){
-		  current_player = PLAYER_X;
+		  return PLAYER_X;
 	  }else{
-		  current_player = PLAYER_O;
+		  return PLAYER_O;
   	  }
   }
   

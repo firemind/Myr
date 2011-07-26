@@ -1,20 +1,19 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
 
 public class Move extends Thread{
 	
-  public Integer maxGeneration = 2;
+  public Integer maxGeneration = null;
   public Game game;
   Action act;
   Myr myr;
   Setting set;
   ArrayList<Move> childMoves = new ArrayList<Move>();
-  Integer current_player;
   Move parent = null;
   private Integer score = null;
   private boolean my_move;
+  private boolean has_children = false;
   
   public Move(Myr myr, Action act, Setting set){;
 	  this.act = act;
@@ -32,19 +31,27 @@ public class Move extends Thread{
 	  }else{
 		  this.game = myr.game.clone();
 	  }
-	  this.my_move = this.game.current_player == this.myr.player_id;
+	  if(!(this.game.current_player == this.myr.player_id) &&(this.maxGeneration % 2) != 0){
+		  System.err.println("Player's turn: "+game.current_player);
+		  TTTAI.printSetting(set);
+	  }
+	  this.my_move = (this.game.current_player == this.myr.player_id);
+
   }
   
   	public Integer getResult(){
-  		if(this.childMoves.size() > 0){
+  		if(has_children){
   			// If it's my move
+  			boolean has_draw_child = false;
   			if(this.my_move){
+  				if((this.maxGeneration % 2) != 1){
+  					//System.out.println("Not my turn");
+  					//TTTAI.printSetting(set);
+  				}
 	  			int wins = 0;
 	  			for(Move m : childMoves){
 	  				Integer res = m.getResult();
-	  				if(res == null){
-	  					return null;
-	  				}else if(res == Myr.LOSE){
+	  				if(res == Myr.LOSE){
 	  					// Opponent has a move with which it could win
 	  					// => this move leads to a lost game
 	  					this.score = Myr.LOSE;
@@ -56,24 +63,24 @@ public class Move extends Thread{
 	  					// => Outcome of this move is unknown
 	  					this.score = Myr.UNKNOWN;
 	  				}else if(res == Myr.DRAW){
-	  					if(this.score == null){
-	  					  this.score = Myr.DRAW;
-	  					}
+	  					has_draw_child = true;
 	  				}
+	  			}
+	  			if(this.score == null && has_draw_child){
+	  				this.score = Myr.DRAW;
 	  			}
 	  			// if all moves a opponent could take after this lead to a win
 	  			// => the move is a guaranteed win
 	  			if(wins == childMoves.size()){
 	  				this.score = Myr.WIN;
+	  				return this.score;
 	  			}
   			}else{
   				// It's a move by an opponent
 	  			int loses = 0;
 	  			for(Move m : childMoves){
 	  				Integer res = m.getResult();
-	  				if(res == null){
-	  					return null;
-	  				}else if(res == Myr.WIN){
+	  				if(res == Myr.WIN){
 	  					// If one of the child moves (my moves) give me a chance to win
 	  					// => it's a guaranteed win
 	  					this.score = Myr.WIN;
@@ -85,15 +92,21 @@ public class Move extends Thread{
 	  					// => Outcome of this move is unknown
 	  					this.score = Myr.UNKNOWN;
 	  				}else if(res == Myr.DRAW){
-	  					if(this.score == null){
-		  				  this.score = Myr.DRAW;
-		  				}
+	  					has_draw_child = true;
 		  			}
+	  			}
+	  			  if(!this.my_move && (this.maxGeneration % 2) != 0){
+	    				System.out.println("Not his turn");
+	    				TTTAI.printSetting(set);
+	    			}
+	  			if(this.score == null && has_draw_child){
+	  				this.score = Myr.DRAW;
 	  			}
 	  			// if all of the child moves (my moves) cause me to lose
 	  			// => the move is a guaranteed lose
 	  			if(loses == childMoves.size()){
 	  				this.score = Myr.LOSE;
+	  				return this.score;
 	  			}
   			}
   	  		if(this.score == null){
@@ -103,42 +116,35 @@ public class Move extends Thread{
   		return this.score;
   	}
   
-	public void waitOnChildResults(){
-		try{
-			synchronized (this) {
-			     this.wait(10000);
-			}
-		}catch (InterruptedException e){
-				System.out.println("Interrupted Move Thread");
-		}
-	}
-  
   public void run(){
-	  this.score = this.myr.getLearnedMove(set, act);
-	  if(this.score != null && this.score != Myr.UNKNOWN){
+	  Integer s = this.myr.getLearnedMove(set, act);
+	  if(s != null && s != Myr.UNKNOWN){
 		  //System.out.println("Move already known: "+this.score);
+		  this.score = s;
   	  }else if( exceededGeneration(this.maxGeneration)){
 		  this.score = Myr.UNKNOWN;
 	  }else{
 		  this.loadInitValues();
 		  this.game.makeMove(act.getValue());
 		  if(game.gameEnded()){
-			  if(game.checkForWinner(myr.player_id)){
-				  score = Myr.WIN;
-			  }else if(game.checkForDraw()){
-				  score = Myr.DRAW;
+			  if(game.winner == myr.player_id){
+				  this.score = Myr.WIN;
+			  }else if(game.winner == Game.DRAW){
+				  this.score = Myr.DRAW;
 			  }else{
-				  score = Myr.LOSE;
+				  this.score = Myr.LOSE;
 			  }
 		  }else{
+			    this.has_children = true;
 			    this.spawnChildren();
-				while(this.getResult() == null){
-					this.waitOnChildResults();
-				}
+//				while(this.getResult() == null){
+//					this.waitOnChildResults();
+//				}
+
 		  }
+		  learnResult();
 	  }
-	  wakeParent();
-	  learnResult();
+	  //wakeParent();
 	  return;
   }
   
@@ -159,12 +165,14 @@ public class Move extends Thread{
   
   private void spawnChildren(){
 		this.childMoves = myr.calculateMoves(game);
-		for(Move m : childMoves){
-			m.setParent(this);
-			m.start();
-		}
-		if(this.childMoves.size() == 0){
-			System.out.println("Don't have any child moves");
+		try{
+			for(Move m : childMoves){
+				m.setParent(this);
+				m.start();
+				m.join();
+			}
+		}catch (InterruptedException e){
+				System.out.println("Interrupted Move Thread");
 		}
   }
   
@@ -178,10 +186,4 @@ public class Move extends Thread{
       return count > gen;
   }
   
-  private void wakeParent(){
-	  if(this.parent != null)
-	    synchronized (this.parent) {
-		 	  parent.notify();
-		}
-  }
 }

@@ -9,19 +9,29 @@ public class TTTAI {
 	public static void main(String[] args){
 		Myr myr = new Myr();
 		TTTAI tttai = new TTTAI();
-		for(int i = 0; i < 80000; i++){
+		for(int i = 0; i < 8000; i++){
+			if(i % 1000 == 0){
+			  System.out.println("Game Nr "+i);
+			  printStats(tttai, myr);
+			}
 		  playGame(myr, tttai);
 		}
+	    printStats(tttai, myr);
+	}
+	
+	public static void printStats(TTTAI tttai, Myr myr){
 		  System.out.println("Myr Wins "+tttai.myr_wins);
 		  System.out.println("TTTAI Wins "+tttai.tttai_wins);
 		  System.out.println("Draws "+tttai.draws);
 		  System.out.println("Total Settings learned "+myr.learnedMoves.size());
+		  System.out.println("Total Moves learned "+myr.learned_move_counter);
 	}
 	
 	public static void playGame(Myr myr, TTTAI tttai){
 		Game game = new Game();
+		game.current_player = Game.PLAYER_O;
 		myr.startGame(game);
-		Integer assumedScore = 0;
+		int assumedScore = 0;
 		while(!myr.game.gameEnded()){
 //			System.out.println("Myr's turn");
 			assumedScore = myr.makeMove();
@@ -31,11 +41,11 @@ public class TTTAI {
 				game.makeMove(besterZug(game));
 			}
 		}
-		if(game.checkForWinner(myr.player_id)){
+		if(game.winner == myr.player_id){
 			tttai.myr_wins++;
-		}else if(game.checkForDraw()){
+		}else if(game.winner == Game.DRAW){
 			tttai.draws++;
-		}else{
+		}else if(game.winner == Game.PLAYER_X){
 			tttai.tttai_wins++;
 			if(assumedScore > -100)
 			  System.err.println("TTTAI wins, score was "+assumedScore);
