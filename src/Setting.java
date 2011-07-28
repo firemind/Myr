@@ -11,7 +11,6 @@ public class Setting {
 	public HashMap<String, String> board = new HashMap<String, String>();
 	private Integer score = Myr.UNKNOWN;
 	
-	public boolean my_move;
 	public Game paused_game;
 	public boolean terminal = false;
 	public int depth = 1;
@@ -30,6 +29,8 @@ public class Setting {
 	}
 	
 	public void setScore(Integer ns){
+		if(ns < 0)
+			System.err.println("Problem");
 		this.score = ns;
 	}
 	
@@ -40,7 +41,7 @@ public class Setting {
 		while(it.hasNext()) {	
 			Action key = (Action) it.next();
 			Setting val = outcomes.get(key);
-			int newscore = val.getScore();
+			int newscore = -val.getScore();
 			if(newscore > bestScore){
 				bestMove = key;
 				bestScore = newscore;
@@ -92,7 +93,7 @@ public class Setting {
 	        return this.score;
 	    int v = -100000000;
 	    for (Setting outcome : outcomes.values())
-	        v = Math.max(v, - outcome.minmax());
+	        v = Math.max(v, -outcome.minmax());
 	    return v;
 	}
 }

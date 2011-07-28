@@ -24,11 +24,6 @@ public class Move extends Thread{
 	  this.parent = p;
   }
   
-  public void loadInitValues(){
-	  set.my_move = (this.game.current_player == this.myr.player_id);
-
-  }
-  
   	
   
   public void run(){
@@ -36,7 +31,6 @@ public class Move extends Thread{
   		  set.paused_game = this.game;
 		  this.score = Myr.UNKNOWN;
 	  }else{
-		  this.loadInitValues();
 		  this.game.makeMove(act.getValue());
 		  Setting outcome = myr.learnSetting(game);
 		  if(game.gameEnded()){
