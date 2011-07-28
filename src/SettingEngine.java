@@ -5,7 +5,7 @@ import java.util.List;
 
 public class SettingEngine {
 	
-   private List<Setting> settings = Collections.synchronizedList(new ArrayList<Setting>());
+   public List<Setting> settings = Collections.synchronizedList(new ArrayList<Setting>());
    
    public synchronized Setting addSetting(Setting ns){
 	   for ( Setting set : settings){

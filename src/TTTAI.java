@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 
 public class TTTAI {
 	
@@ -9,8 +11,8 @@ public class TTTAI {
 	public static void main(String[] args){
 		Myr myr = new Myr();
 		TTTAI tttai = new TTTAI();
-		for(int i = 0; i < 800000; i++){
-			if(i % 10 == 0){
+		for(int i = 0; i < 8000; i++){
+			if(i % 1 == 0){
 			  System.out.println("Game Nr "+i);
 			  printStats(tttai, myr);
 			}
@@ -23,7 +25,7 @@ public class TTTAI {
 		  System.out.println("Myr Wins "+tttai.myr_wins);
 		  System.out.println("TTTAI Wins "+tttai.tttai_wins);
 		  System.out.println("Draws "+tttai.draws);
-		  System.out.println("Total Settings learned "+myr.learnedMoves.size());
+		  System.out.println("Settings "+myr.settingEngine.settings.size());
 	}
 	
 	public static void playGame(Myr myr, TTTAI tttai){
@@ -49,7 +51,8 @@ public class TTTAI {
 	}
 	
 	public static Setting createSettingFromField(int[] field){
-		Setting set = new Setting();
+		Setting setting = new Setting();
+		HashMap<String,String> set = setting.board;
 		set.put("FIELD 1", String.valueOf(field[0]));
 		set.put("FIELD 2", String.valueOf(field[1]));
 		set.put("FIELD 3", String.valueOf(field[2]));
@@ -59,7 +62,8 @@ public class TTTAI {
 		set.put("FIELD 7", String.valueOf(field[6]));
 		set.put("FIELD 8", String.valueOf(field[7]));
 		set.put("FIELD 9", String.valueOf(field[8]));
-		return set;
+		setting.board = set;
+		return setting;
 	}
 	
 	public static int siegInEinemZug(Game game, int aktuellerSpieler) {
@@ -98,7 +102,7 @@ public class TTTAI {
 		return feld;
 	}
 	
-	public static void printSetting(Setting set){
+	public static void printSetting(HashMap<String,String> set){
 		System.out.println("+-----+");
 		System.out.println("|"+set.get("FIELD 1")+"|"+set.get("FIELD 2")+"|"+set.get("FIELD 3")+"|");
 		System.out.println("|"+set.get("FIELD 4")+"|"+set.get("FIELD 5")+"|"+set.get("FIELD 6")+"|");
