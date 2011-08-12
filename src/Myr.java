@@ -5,10 +5,10 @@ import java.util.Iterator;
 
 public class Myr {
 
-	static final int WIN = 1;
-	static final int DRAW = 0;
+	static final int WIN = 100;
+	static final int DRAW = -1;
 	static final int UNKNOWN = 0;
-	static final int LOSE = -1;
+	static final int LOSE = -100;
 	
 	static final int maxThreads = 8; 
 	
@@ -37,32 +37,35 @@ public class Myr {
 		Action bestMove = null;
 		Setting set = TTTAI.createSettingFromField(game.field);
 		set = this.settingEngine.addSetting(set);
-		bestMove = this.getBestMove(set);
+		set.startPausedGames(this);
+/*		bestMove = this.getBestMove(set);
 		if(bestMove != null){
 			Integer score = set.getOutcome(bestMove).getScore();
-			// Not all Children have been evaulated
+			// Not all Children have been evaluated
 			if(score  != null &&  score == Myr.UNKNOWN){
-			  set.startPausedGames(this);
+
 			  bestMove = this.getBestMove(set);
 			}
 			if(score  != null &&  score == Myr.UNKNOWN){
 				  testMoves();
 				  bestMove = this.getBestMove(set);
 			}
-		}
+		}*/
+		testMoves();
 		while(bestMove == null ){
-			System.out.println("No best move yet");
+			//System.out.println("No best move yet");
 			testMoves();
 			bestMove = this.getBestMove(set);
 		}
-		System.out.println("Performing Action with a score of"+set.getOutcome(bestMove).getScore());
-		TTTAI.printSetting(set.getOutcome(bestMove).board);
+		if(set.getOutcome(bestMove).getScore() > 0)
+		  System.out.println("Performing Action with a score of "+set.getOutcome(bestMove).getScore());
+		//TTTAI.printSetting(set.getOutcome(bestMove).board);
 		//this.movesForThisGame.put(set, bestMove);
 		this.game.makeMove(bestMove.getValue());
 	}
 	
 	public void testMoves(){
-		System.out.println("Starting test moves");
+		//System.out.println("Starting test moves");
 		ArrayList<Move> firstMoves = this.calculateMoves(game);
 		//System.out.println("Starting "+firstMoves.size()+" Test Moves");
 		try {
@@ -93,24 +96,27 @@ public class Myr {
 		ArrayList<Move> moves = new ArrayList<Move>();
 		HashMap<String, Integer> pm = game.possibleMoves();
 		Setting set = this.settingEngine.addSetting(TTTAI.createSettingFromField(game.getField()));
-		Object[] values =  pm.values().toArray();
-		for(int i=0;(i<values.length && moves.size() <= maxThreads ) ;i++){
-			Action act = this.actionEngine.addAction((Integer)values[i]);
-			Setting outcome = set.getOutcome(act);
-			if(outcome == null || outcome.getScore() == Myr.UNKNOWN){
-				Move m = createMove(set, act, game);
-				switch(values.length){
-				  case 9: m.maxGeneration = 1; break;
-				  case 8: m.maxGeneration = 1; break;
-				  case 7: m.maxGeneration = 1; break;
-				  case 6: m.maxGeneration = 2; break;
-				  case 5: m.maxGeneration = 2; break;
-				  case 4: m.maxGeneration = 3; break;
-				  case 3: m.maxGeneration = 2; break;
-				  case 2: m.maxGeneration = 1; break;
-				  case 1: m.maxGeneration = 1; break;
+		int s=set.getScore(); 
+		if(s != Myr.WIN && s != Myr.DRAW ){
+			Object[] values =  pm.values().toArray();
+			for(int i=0;(i<values.length && moves.size() <= maxThreads ) ;i++){
+				Action act = this.actionEngine.addAction((Integer)values[i]);
+				Setting outcome = set.getOutcome(act);
+				if(outcome == null || outcome.getScore() == Myr.UNKNOWN){
+					Move m = createMove(set, act, game);
+					switch(values.length){
+					  case 9: m.maxGeneration = 0; break;
+					  case 8: m.maxGeneration = 2; break;
+					  case 7: m.maxGeneration = 2; break;
+					  case 6: m.maxGeneration = 3; break;
+					  case 5: m.maxGeneration = 3; break;
+					  case 4: m.maxGeneration = 4; break;
+					  case 3: m.maxGeneration = 3; break;
+					  case 2: m.maxGeneration = 2; break;
+					  case 1: m.maxGeneration = 2; break;
+					}
+					moves.add(m);
 				}
-				moves.add(m);
 			}
 		}
 		return moves;
@@ -119,4 +125,20 @@ public class Myr {
 	public Move createMove(Setting set, Action act, Game game){
 		return new Move(this, act, set, game);
 	}
+	
+	public static int guess(Setting set){
+		int score = 0;
+		Integer[] fieldValues = {2,3,2,3,4,3,2,3,2};
+		
+		for(int i=0;i<fieldValues.length ;i++){
+			Integer fieldValue = Integer.valueOf(set.board.get("FIELD "+String.valueOf(i+1)));
+			if(fieldValue == set.current_player){
+				score += fieldValues[i]; // The Opponent has the field
+			}else if(fieldValue != Game.DRAW){
+				score -= fieldValues[i]; // I have the field
+			}			
+		}
+		return score;
+	}
+	
 }

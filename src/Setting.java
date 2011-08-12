@@ -1,9 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Observable;
-import java.util.Observer;
-
+import java.util.Random;
 
 public class Setting {
 
@@ -12,8 +10,8 @@ public class Setting {
 	private Integer score = Myr.UNKNOWN;
 	
 	public Game paused_game;
+	public int current_player;
 	public boolean terminal = false;
-	public int depth = 1;
 	private HashMap<Action, Setting> outcomes = new HashMap<Action, Setting>();
 
 	public Setting getOutcome(Action act){
@@ -29,14 +27,13 @@ public class Setting {
 	}
 	
 	public void setScore(Integer ns){
-		if(ns < 0)
-			System.err.println("Problem");
 		this.score = ns;
 	}
 	
 	public Action bestOutcome(){
 		Action bestMove = null;
 		int bestScore = -101;
+		Random random = new Random();
 		Iterator<Action> it = outcomes.keySet().iterator();
 		while(it.hasNext()) {	
 			Action key = (Action) it.next();
@@ -45,6 +42,8 @@ public class Setting {
 			if(newscore > bestScore){
 				bestMove = key;
 				bestScore = newscore;
+			}else if(newscore == bestScore && random.nextBoolean()){
+				bestMove = key;
 			}
 		}
 		return bestMove;
@@ -55,6 +54,7 @@ public class Setting {
 			outcome.startPausedGames(myr);
 		}
 		if(this.paused_game != null){
+			//System.out.println("Starting paused game score is "+this.getScore());
 			ArrayList<Move> firstMoves = myr.calculateMoves(this.paused_game);
 			try {
 				for(Move m : firstMoves){
@@ -88,9 +88,12 @@ public class Setting {
 		return ( matches / set.board.keySet().size()) * 100;
 	}
 	
+	// Returns the Score the Field has from the perspective of the current player
 	public int minmax(){
+		if(this.terminal)
+			return this.score;
 	    if (this.outcomes.size() == 0)
-	        return this.score;
+	        return Myr.guess(this);
 	    int v = -100000000;
 	    for (Setting outcome : outcomes.values())
 	        v = Math.max(v, -outcome.minmax());

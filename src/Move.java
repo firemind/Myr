@@ -27,33 +27,33 @@ public class Move extends Thread{
   	
   
   public void run(){
-	  if( exceededGeneration(this.maxGeneration)){
-  		  set.paused_game = this.game;
-		  this.score = Myr.UNKNOWN;
-	  }else{
-		  this.game.makeMove(act.getValue());
-		  Setting outcome = myr.learnSetting(game);
-		  if(game.gameEnded()){
-			  outcome.terminal = true;
-			  if(game.winner == Game.DRAW){
-				  this.score = 0;
-			  }else{
-				  this.score = 1;
-			  }
-			  /*
-			  if(game.winner == myr.player_id){
-				  this.score = Myr.WIN;
-			  }else if(game.winner == Game.DRAW){
-				  this.score = Myr.DRAW;
-			  }else{
-				  this.score = Myr.LOSE;
-			  }*/
-			  outcome.setScore(this.score);
+	  this.game.makeMove(act.getValue());
+	  Setting outcome = myr.learnSetting(game);
+	  outcome.current_player = game.current_player;
+	  if(game.gameEnded()){
+		  outcome.terminal = true;
+		  if(game.winner == Game.DRAW){
+			  this.score = Myr.DRAW;
 		  }else{
-			    this.spawnChildren();
+			  this.score = Myr.LOSE;
 		  }
-		  set.learnOutcome(act, outcome);
+		  /*
+		  if(game.winner == myr.player_id){
+			  this.score = Myr.WIN;
+		  }else if(game.winner == Game.DRAW){
+			  this.score = Myr.DRAW;
+		  }else{
+			  this.score = Myr.LOSE;
+		  }*/
+		  outcome.setScore(this.score);
+	  }else{
+		  if( exceededGeneration(this.maxGeneration)){
+	  		  set.paused_game = this.game;
+		  }else{
+		    this.spawnChildren();
+		  }
 	  }
+	  set.learnOutcome(act, outcome);
 	  return;
   }
   
@@ -79,7 +79,7 @@ public class Move extends Thread{
 		  count++;
 		  p = p.parent;
 	  }
-      return count > gen;
+      return count >= gen;
   }
   
 }
